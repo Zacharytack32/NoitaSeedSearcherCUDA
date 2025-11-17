@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CudaCompile Include="main.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{8f424ce5-c526-4116-ac5c-cbc22c66a3b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platforms">
+      <UniqueIdentifier>{e535e143-708c-4c91-b70b-93c67d64eeac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="data">
+      <UniqueIdentifier>{88a49e4d-a7b9-4e38-91a0-f04c0641b74b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{75e2cbe3-ac4b-4b53-a640-80b75b8e6912}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="platforms\impl_cpu.h">
+      <Filter>platforms</Filter>
+    </ClInclude>
+    <ClInclude Include="platforms\impl_cpu_compute_helpers.h">
+      <Filter>platforms</Filter>
+    </ClInclude>
+    <ClInclude Include="platforms\cpu_defines.h">
+      <Filter>platforms</Filter>
+    </ClInclude>
+    <ClInclude Include="platforms\impl_cuda.h">
+      <Filter>platforms</Filter>
+    </ClInclude>
+    <ClInclude Include="platforms\impl_cuda_compute_helpers.h">
+      <Filter>platforms</Filter>
+    </ClInclude>
+    <ClInclude Include="platforms\cuda_defines.h">
+      <Filter>platforms</Filter>
+    </ClInclude>
+    <ClInclude Include="platforms\platform.h">
+      <Filter>platforms</Filter>
+    </ClInclude>
+    <ClInclude Include="platforms\platform_api.h">
+      <Filter>platforms</Filter>
+    </ClInclude>
+    <ClInclude Include="platforms\platform_compute_helpers.h">
+      <Filter>platforms</Filter>
+    </ClInclude>
+    <ClInclude Include="platforms\platform_implementation.h">
+      <Filter>platforms</Filter>
+    </ClInclude>
+    <ClInclude Include="data\alchemy.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\fungal.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\guiData.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\modifiers.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\perks.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\potions.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\rains.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\temples.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\wand_sprites.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="defines.h" />
+    <ClInclude Include="include\enums.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\misc_funcs.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\primitives.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\search_structs.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\worldgen_structs.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\noita_random.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\configuration.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\compute.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pngutils.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\compute.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\platform_implementation_src.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\biome_impl.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\filter.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hbwang.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\misc.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\output.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\precheck.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\search.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\structs.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\wandgen.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\worldgen.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gui_primitives.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gui_structs.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pathfinding.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="include\wak.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\wak.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="data\ids.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\ui_names.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cli.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="data\host_tables.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="src\biome_map.cpp">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

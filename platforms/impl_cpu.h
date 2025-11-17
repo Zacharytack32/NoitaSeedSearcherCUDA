@@ -1,0 +1,166 @@
+#pragma once
+#include "platform.h"
+#include <cstdlib>
+#include <thread>
+
+#ifdef WIN32
+#define NOMINMAX
+#include "Windows.h"
+#endif
+#ifdef _MSC_VER
+#include <intrin.h>
+#else
+#include <cpuid.h>
+#endif
+
+#include "../include/compute.h"
+#include "../include/misc_funcs.h"
+#include "../include/pngutils.h"
+#include "../include/wak.h"
+
+int NumThreads;
+int memIdxCtr = 0;
+struct HostPointers {
+	uint8_t* arena;
+	uint8_t* output;
+} hostPtrs;
+
+//platform.h impl
+struct Worker {
+	int memIdx;
+	std::thread thread;
+	bool returned;
+	SpanRet ret;
+};
+
+void GetProcessorName(char* buffer) {
+	memset(buffer, 0, 0x40);
+#ifdef _MSC_VER
+	int CPUInfo[4] = {-1};
+	__cpuid(CPUInfo, 0x80000002);
+	memcpy(buffer, CPUInfo, sizeof(CPUInfo));
+	__cpuid(CPUInfo, 0x80000003);
+	memcpy(buffer + 16, CPUInfo, sizeof(CPUInfo));
+	__cpuid(CPUInfo, 0x80000004);
+	memcpy(buffer + 32, CPUInfo, sizeof(CPUInfo));
+#else
+	int eax, ebx, ecx, edx;
+	__cpuid(0x80000002, eax, ebx, ecx, edx);
+	memcpy(buffer, &eax, 4);
+	memcpy(buffer + 4, &ebx, 4);
+	memcpy(buffer + 8, &ecx, 4);
+	memcpy(buffer + 12, &edx, 4);
+	__cpuid(0x80000003, eax, ebx, ecx, edx);
+	memcpy(buffer + 16, &eax, 4);
+	memcpy(buffer + 20, &ebx, 4);
+	memcpy(buffer + 24, &ecx, 4);
+	memcpy(buffer + 28, &edx, 4);
+	__cpuid(0x80000004, eax, ebx, ecx, edx);
+	memcpy(buffer + 32, &eax, 4);
+	memcpy(buffer + 36, &ebx, 4);
+	memcpy(buffer + 40, &ecx, 4);
+	memcpy(buffer + 44, &edx, 4);
+#endif
+}
+
+void InitializePlatform() {
+	if (DEBUG_FLAGS & DEBUG::SINGLE_THREAD)
+		NumThreads = 1;
+	else
+		NumThreads = std::thread::hardware_concurrency();
+
+	char buffer[0x40];
+	GetProcessorName(buffer);
+	if (DEBUG_FLAGS & (DEBUG::LOG_VERBOSE | DEBUG::LOG_BACKEND))
+		printf("Running with CPU backend using %s, creating %i threads.\n", buffer, NumThreads);
+	memIdxCtr = 0;
+
+	SetWorkerCount(NumThreads);
+	SetWorkerAppetite(1);
+	SetTargetDispatchRate(NumThreads * 8);
+}
+void DestroyPlatform() {}
+
+void AllocateComputeMemory() {
+	//SearchConfig config = GetSearchConfig();
+
+	hostPtrs.arena = (uint8_t*)malloc(GetMinimumSpanMemory() * NumThreads);
+	hostPtrs.output = (uint8_t*)malloc(GetMinimumOutputMemory() * NumThreads);
+
+	uint8_t* coalmine_overlay_rgb = (uint8_t*)malloc(3 * 256 * 103);
+	coalmine_overlay = (uint8_t*)malloc(256 * 103);
+	ReadBufferImage(
+		(uint8_t*)get_wak_file("data/wang_tiles/extra_layers/coalmine.png").c_str(), coalmine_overlay_rgb, false);
+
+	for (int i = 0; i < 256 * 103; i++) {
+		coalmine_overlay[i] = coalmine_overlay_rgb[3 * i + 2] == 0x42 ? 1 :
+							  coalmine_overlay_rgb[3 * i + 1] == 0x42 ? 2 :
+							  coalmine_overlay_rgb[3 * i + 1] > 0x10  ? 3 :
+																		0;
+	}
+	free(coalmine_overlay_rgb);
+
+	if (DEBUG_FLAGS & (DEBUG::LOG_VERBOSE | DEBUG::LOG_BACKEND))
+		printf("Allocated %lluKB of host memory\n",
+			((GetMinimumSpanMemory() + GetMinimumOutputMemory()) * NumThreads) / 1_KB);
+}
+void FreeComputeMemory() {
+	free(hostPtrs.arena);
+	free(hostPtrs.output);
+	free(coalmine_overlay);
+}
+
+Worker* CreateWorker() {
+	Worker* w = new Worker;
+	w->memIdx = memIdxCtr++;
+	w->returned = false;
+	return w;
+}
+void DestroyWorker(Worker& worker) {
+	if (worker.thread.joinable())
+		worker.thread.join();
+}
+void ThreadMain(SpanParams params, Worker* worker) {
+	// These should be not taking up all of your system's resources :)
+	int prio_num = GetSearchConfig().generalCfg.priority;
+	if (prio_num) {
+#ifdef WIN32
+		SetThreadPriority(GetCurrentThread(), prio_num < 0 ? THREAD_PRIORITY_LOWEST : THREAD_PRIORITY_ABOVE_NORMAL);
+#else
+		int policy;
+		sched_param sp;
+		pthread_getschedparam(pthread_self(), &policy, &sp);
+		sp.sched_priority = prio_num < 0 ? sched_get_priority_min(policy) :
+										   (sched_get_priority_min(policy) + 3 * sched_get_priority_max(policy)) / 4;
+		pthread_setschedparam(pthread_self(), policy, &sp);
+#endif
+	}
+	worker->ret = EvaluateSpan(GetSearchConfig(), params, hostPtrs.arena + GetMinimumSpanMemory() * worker->memIdx,
+		hostPtrs.output + GetMinimumOutputMemory() * worker->memIdx);
+	worker->ret.outputPtr = hostPtrs.output + GetMinimumOutputMemory() * worker->memIdx;
+	worker->returned = true;
+}
+
+void DispatchJob(Worker& worker, SpanParams* spans) {
+	std::thread t = std::thread(ThreadMain, spans[0], &worker);
+	worker.thread = std::move(t);
+}
+bool QueryWorker(Worker& worker) { return worker.returned; }
+SpanRet* SubmitJob(Worker& worker) {
+	worker.returned = false;
+	worker.thread.join();
+	return &worker.ret;
+}
+void AbortJob(Worker& worker) { worker.thread.join(); }
+
+void* UploadToDevice(const void* hMem, size_t size) {
+	void* dMem = malloc(size);
+	memcpy(dMem, hMem, size);
+	return dMem;
+}
+void HSetBiomeData() {
+	SetBiomeData();
+	SetBiomePixelScenes();
+}
+void HSetBiomeData2(BiomePixelScenes* l) { memcpy(AllPixelSceneLists, l, sizeof(HostPixelSceneLists)); }
+void HSetSpellData(SpellTables* l) { memcpy(&spellTables, l, sizeof(SpellTables)); }
